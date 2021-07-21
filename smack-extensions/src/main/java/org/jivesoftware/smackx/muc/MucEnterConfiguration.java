@@ -47,6 +47,7 @@ public final class MucEnterConfiguration {
     private final Date since;
     private final long timeout;
     private final Presence joinPresence;
+    private final Boolean skipPresence;
 
     MucEnterConfiguration(Builder builder) {
         nickname = builder.nickname;
@@ -63,6 +64,12 @@ public final class MucEnterConfiguration {
         else {
             joinPresence = builder.joinPresence.clone();
         }
+        if (builder.skipPresence) {
+            skipPresence = true;
+        }
+        else{
+            skipPresence = false;
+        }
         // Indicate the the client supports MUC
         joinPresence.addExtension(new MUCInitialPresence(password, maxChars, maxStanzas, seconds,
                         since));
@@ -72,6 +79,10 @@ public final class MucEnterConfiguration {
         final EntityFullJid jid = JidCreate.fullFrom(multiUserChat.getRoom(), nickname);
         joinPresence.setTo(jid);
         return joinPresence;
+    }
+
+    Boolean getSkipPresence() {
+        return skipPresence;
     }
 
     long getTimeout() {
@@ -88,6 +99,7 @@ public final class MucEnterConfiguration {
         private Date since;
         private long timeout;
         private Presence joinPresence;
+        private Boolean skipPresence = false;
 
         Builder(Resourcepart nickname, long timeout) {
             this.nickname = Objects.requireNonNull(nickname, "Nickname must not be null");
@@ -197,6 +209,16 @@ public final class MucEnterConfiguration {
          */
         public Builder requestHistorySince(Date since) {
             this.since = since;
+            return this;
+        }
+
+        /**
+         * Join the MUC room and skip presence handling.
+         *
+         * @return a reference to this builder.
+         */
+        public Builder skipPresence() {
+            this.skipPresence = true;
             return this;
         }
 

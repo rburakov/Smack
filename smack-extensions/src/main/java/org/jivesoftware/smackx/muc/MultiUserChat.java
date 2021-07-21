@@ -340,9 +340,6 @@ public class MultiUserChat {
 
         // Setup the messageListeners and presenceListeners *before* the join presence is send.
         connection.addSyncStanzaListener(messageListener, fromRoomGroupchatFilter);
-        StanzaFilter presenceFromRoomFilter = new AndFilter(fromRoomFilter,
-                        StanzaTypeFilter.PRESENCE);
-        connection.addSyncStanzaListener(presenceListener, presenceFromRoomFilter);
         // @formatter:off
         connection.addSyncStanzaListener(subjectListener,
                         new AndFilter(fromRoomFilter,
@@ -355,32 +352,43 @@ public class MultiUserChat {
                         );
         // @formatter:on
         connection.addSyncStanzaListener(declinesListener, new AndFilter(fromRoomFilter, DECLINE_FILTER));
-        connection.addStanzaInterceptor(presenceInterceptor, new AndFilter(ToMatchesFilter.create(room),
-                        StanzaTypeFilter.PRESENCE));
         messageCollector = connection.createStanzaCollector(fromRoomGroupchatFilter);
 
-        // Wait for a presence packet back from the server.
-        // @formatter:off
-        StanzaFilter responseFilter = new AndFilter(StanzaTypeFilter.PRESENCE,
-                        new OrFilter(
-                            // We use a bare JID filter for positive responses, since the MUC service/room may rewrite the nickname.
-                            new AndFilter(FromMatchesFilter.createBare(getRoom()), MUCUserStatusCodeFilter.STATUS_110_PRESENCE_TO_SELF),
-                            // In case there is an error reply, we match on an error presence with the same stanza id and from the full
-                            // JID we send the join presence to.
-                            new AndFilter(FromMatchesFilter.createFull(joinPresence.getTo()), new StanzaIdFilter(joinPresence), PresenceTypeFilter.ERROR)
-                        )
-                    );
-        // @formatter:on
         StanzaCollector presenceStanzaCollector = null;
-        Presence presence;
+        Presence presence = null;
         try {
-            // This stanza collector will collect the final self presence from the MUC, which also signals that we have successful entered the MUC.
-            StanzaCollector selfPresenceCollector = connection.createStanzaCollectorAndSend(responseFilter, joinPresence);
-            StanzaCollector.Configuration presenceStanzaCollectorConfguration = StanzaCollector.newConfiguration().setCollectorToReset(
-                            selfPresenceCollector).setStanzaFilter(presenceFromRoomFilter);
-            // This stanza collector is used to reset the timeout of the selfPresenceCollector.
-            presenceStanzaCollector = connection.createStanzaCollector(presenceStanzaCollectorConfguration);
-            presence = selfPresenceCollector.nextResultOrThrow(conf.getTimeout());
+            if (conf.getSkipPresence()){
+                connection.sendStanza(joinPresence);
+            }
+            else {
+                StanzaFilter presenceFromRoomFilter = new AndFilter(fromRoomFilter,
+                        StanzaTypeFilter.PRESENCE);
+                connection.addSyncStanzaListener(presenceListener, presenceFromRoomFilter);
+
+                connection.addStanzaInterceptor(presenceInterceptor, new AndFilter(ToMatchesFilter.create(room),
+                        StanzaTypeFilter.PRESENCE));
+
+                // Wait for a presence packet back from the server.
+                // @formatter:off
+                StanzaFilter responseFilter = new AndFilter(StanzaTypeFilter.PRESENCE,
+                        new OrFilter(
+                                // We use a bare JID filter for positive responses, since the MUC service/room may rewrite the nickname.
+                                new AndFilter(FromMatchesFilter.createBare(getRoom()), MUCUserStatusCodeFilter.STATUS_110_PRESENCE_TO_SELF),
+                                // In case there is an error reply, we match on an error presence with the same stanza id and from the full
+                                // JID we send the join presence to.
+                                new AndFilter(FromMatchesFilter.createFull(joinPresence.getTo()), new StanzaIdFilter(joinPresence), PresenceTypeFilter.ERROR)
+                        )
+                );
+                // @formatter:on
+
+                // This stanza collector will collect the final self presence from the MUC, which also signals that we have successful entered the MUC.
+                StanzaCollector selfPresenceCollector = connection.createStanzaCollectorAndSend(responseFilter, joinPresence);
+                StanzaCollector.Configuration presenceStanzaCollectorConfguration = StanzaCollector.newConfiguration().setCollectorToReset(
+                        selfPresenceCollector).setStanzaFilter(presenceFromRoomFilter);
+                // This stanza collector is used to reset the timeout of the selfPresenceCollector.
+                presenceStanzaCollector = connection.createStanzaCollector(presenceStanzaCollectorConfguration);
+                presence = selfPresenceCollector.nextResultOrThrow(conf.getTimeout());
+            }
         }
         catch (NotConnectedException | InterruptedException | NoResponseException | XMPPErrorException e) {
             // Ensure that all callbacks are removed if there is an exception
@@ -395,7 +403,13 @@ public class MultiUserChat {
 
         // This presence must be send from a full JID. We use the resourcepart of this JID as nick, since the room may
         // performed roomnick rewriting
-        Resourcepart receivedNickname = presence.getFrom().getResourceOrThrow();
+        Resourcepart receivedNickname;
+        if (presence != null){
+            receivedNickname = presence.getFrom().getResourceOrThrow();
+        }
+        else{
+            receivedNickname = connection.getUser().getResourceOrThrow();
+        }
         setNickname(receivedNickname);
 
         joined = true;
