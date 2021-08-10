@@ -22,14 +22,12 @@ package org.jivesoftware.smack.omemo;
 
 import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.CIPHERMODE;
 import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.KEYTYPE;
-import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.PROVIDER;
 import static org.junit.Assert.assertArrayEquals;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Security;
 
 import javax.crypto.BadPaddingException;
@@ -63,7 +61,7 @@ import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 public class OmemoMessageBuilderTest extends SmackTestSuite {
 
     @Test
-    public void setTextTest() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, NoSuchProviderException, InvalidKeyException {
+    public void setTextTest() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, UnsupportedEncodingException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         Security.addProvider(new BouncyCastleProvider());
         String message = "Hello World!";
         byte[] key = OmemoMessageBuilder.generateKey();
@@ -71,7 +69,7 @@ public class OmemoMessageBuilderTest extends SmackTestSuite {
 
         SecretKey secretKey = new SecretKeySpec(key, KEYTYPE);
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
-        Cipher cipher = Cipher.getInstance(CIPHERMODE, PROVIDER);
+        Cipher cipher = Cipher.getInstance(CIPHERMODE);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
 
         OmemoMessageBuilder<IdentityKeyPair, IdentityKey, PreKeyRecord, SignedPreKeyRecord, SessionRecord, SignalProtocolAddress, ECPublicKey, PreKeyBundle, SessionCipher>

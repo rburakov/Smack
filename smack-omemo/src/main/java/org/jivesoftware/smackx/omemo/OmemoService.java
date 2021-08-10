@@ -24,7 +24,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -178,7 +177,6 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
      *
      * @throws NoSuchPaddingException               When no Cipher could be instantiated.
      * @throws NoSuchAlgorithmException             when no Cipher could be instantiated.
-     * @throws NoSuchProviderException              when BouncyCastle could not be found.
      * @throws InvalidAlgorithmParameterException   when the Cipher could not be initialized
      * @throws InvalidKeyException                  when the generated key is invalid
      * @throws UnsupportedEncodingException         when UTF8 is unavailable
@@ -187,7 +185,7 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
      */
     public OmemoService()
             throws NoSuchPaddingException, InvalidKeyException, UnsupportedEncodingException, IllegalBlockSizeException,
-            BadPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            BadPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
 
         // Check availability of algorithms and encodings needed for crypto
         checkAvailableAlgorithms();
@@ -237,12 +235,10 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
      * @throws NoSuchAlgorithmException
      * @throws IllegalBlockSizeException
      * @throws BadPaddingException
-     * @throws NoSuchProviderException
      * @throws InvalidKeyException
      */
     protected static void checkAvailableAlgorithms() throws NoSuchPaddingException, UnsupportedEncodingException,
-            InvalidAlgorithmParameterException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException,
-            NoSuchProviderException, InvalidKeyException {
+            InvalidAlgorithmParameterException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeyException {
         // Test crypto functions
         new OmemoMessageBuilder<>(null, null, "");
     }
@@ -944,7 +940,7 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
                 builder;
         try {
             builder = new OmemoMessageBuilder<>(omemoManager, getOmemoStoreBackend(), message.getBody());
-        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException | NoSuchProviderException |
+        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException |
                 NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new CryptoFailedException(e);
         }
@@ -996,7 +992,7 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
         try {
             builder = new OmemoMessageBuilder<>(omemoManager, getOmemoStoreBackend(), null);
 
-        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException | NoSuchProviderException |
+        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException |
                 NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new CryptoFailedException(e);
         }
@@ -1029,7 +1025,7 @@ public abstract class OmemoService<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, 
         try {
             builder = new OmemoMessageBuilder<>(omemoManager, getOmemoStoreBackend(), aesKey, iv);
 
-        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException | NoSuchProviderException |
+        } catch (UnsupportedEncodingException | BadPaddingException | IllegalBlockSizeException |
                 NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new CryptoFailedException(e);
         }

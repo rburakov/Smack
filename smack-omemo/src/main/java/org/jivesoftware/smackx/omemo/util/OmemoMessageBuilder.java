@@ -19,13 +19,11 @@ package org.jivesoftware.smackx.omemo.util;
 import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.CIPHERMODE;
 import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.KEYLENGTH;
 import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.KEYTYPE;
-import static org.jivesoftware.smackx.omemo.util.OmemoConstants.Crypto.PROVIDER;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 
@@ -87,14 +85,13 @@ public class OmemoMessageBuilder<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_
      * @throws NoSuchAlgorithmException
      * @throws IllegalBlockSizeException
      * @throws UnsupportedEncodingException
-     * @throws NoSuchProviderException
      * @throws InvalidAlgorithmParameterException
      */
     public OmemoMessageBuilder(OmemoManager omemoManager,
                                OmemoStore<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_Sess, T_Addr, T_ECPub, T_Bundle, T_Ciph> omemoStore,
                                byte[] aesKey, byte[] iv)
             throws NoSuchPaddingException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException,
-            UnsupportedEncodingException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            UnsupportedEncodingException, InvalidAlgorithmParameterException {
         this.omemoStore = omemoStore;
         this.omemoManager = omemoManager;
         this.messageKey = aesKey;
@@ -113,13 +110,12 @@ public class OmemoMessageBuilder<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_
      * @throws NoSuchAlgorithmException
      * @throws IllegalBlockSizeException
      * @throws UnsupportedEncodingException
-     * @throws NoSuchProviderException
      * @throws InvalidAlgorithmParameterException
      */
     public OmemoMessageBuilder(OmemoManager omemoManager,
                                OmemoStore<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_Sess, T_Addr, T_ECPub, T_Bundle, T_Ciph> omemoStore, String message)
             throws NoSuchPaddingException, BadPaddingException, InvalidKeyException, NoSuchAlgorithmException, IllegalBlockSizeException,
-            UnsupportedEncodingException, NoSuchProviderException, InvalidAlgorithmParameterException {
+            UnsupportedEncodingException, InvalidAlgorithmParameterException {
         this.omemoManager = omemoManager;
         this.omemoStore = omemoStore;
         this.setMessage(message);
@@ -132,14 +128,13 @@ public class OmemoMessageBuilder<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_
      * @param message content of the message
      * @throws NoSuchPaddingException               When no Cipher could be instantiated.
      * @throws NoSuchAlgorithmException             when no Cipher could be instantiated.
-     * @throws NoSuchProviderException              when BouncyCastle could not be found.
      * @throws InvalidAlgorithmParameterException   when the Cipher could not be initialized
      * @throws InvalidKeyException                  when the generated key is invalid
      * @throws UnsupportedEncodingException         when UTF8 is unavailable
      * @throws BadPaddingException                  when cipher.doFinal gets wrong padding
      * @throws IllegalBlockSizeException            when cipher.doFinal gets wrong Block size.
      */
-    public void setMessage(String message) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException {
+    public void setMessage(String message) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeyException, UnsupportedEncodingException, BadPaddingException, IllegalBlockSizeException {
         if (message == null) {
             return;
         }
@@ -147,7 +142,7 @@ public class OmemoMessageBuilder<T_IdKeyPair, T_IdKey, T_PreKey, T_SigPreKey, T_
         // Encrypt message body
         SecretKey secretKey = new SecretKeySpec(messageKey, KEYTYPE);
         IvParameterSpec ivSpec = new IvParameterSpec(initializationVector);
-        Cipher cipher = Cipher.getInstance(CIPHERMODE, PROVIDER);
+        Cipher cipher = Cipher.getInstance(CIPHERMODE);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec);
 
         byte[] body;
